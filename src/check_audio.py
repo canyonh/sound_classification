@@ -3,23 +3,65 @@ import glob
 import librosa
 import random
 import numpy as np
-import librosa.display
-import time
-import scipy.io.wavfile
-import math
+import logging
 from random import shuffle
 
-class SampleSet:
+class DataSet:
 
     def __init__(self):
         # index is numerical class
         self.lables = []
-
-        # samples and its correct class
         self.x = []
         self.y = []
 
-    def load(directory, 
+    def Load(self, path):
+        files = glob.glob(path)
+        shuffle(files)
+        
+        for f in files:
+            logging.debug("Load file %s", f)
+            label = __CalculateLable(f)
+            x.appennd(__LoadImpl(self, f))
+
+        __OneHotEncode(self.y)
+        return
+
+    # split the labels, put in labels, and calculate the correct class
+    def __CalculateLabel(file_name):
+        token = os.path.basename(file_name).split('_')[0]
+        logging.debug("assign label %s for file %s", token, file_name)
+
+        idx = -1
+        try:
+            idx = self.labels.index(token)
+        except ValueError:
+            break;
+        
+        if idx == -1:
+            self.labels.append(token)
+            correct_class = len(self.labels)
+            logging.debug("assign existing label %s for file %s, class: %d", token, file_name, correct_class)
+        else:
+            correct_class = idx
+            logging.debug("adding a new label %s for file %s, class: %d", token, file_name, correct_class)
+        __LoadImpl(self,file_name)
+
+    def __LoadImpl(self, path):
+        raise NotImplementedError()
+        return None
+
+    def __OneHotEncoding(dim, val):
+        max_class = len(self.labels) + 1
+        assert max
+        return
+
+class WaveDataSet(DataSet):
+
+    def __LoadImpl(self, path):
+        
+        
+
+
         
 
 class Sample:
@@ -33,15 +75,6 @@ class Sample:
     def Load(self, path):
         raise NotImplementedError()
 
-    def __CalculateLabel(file_name):
-        #<label>_<serial>.type
-        token = os.path.basename(file_name).split('_')[0]
-        if token in self.labels:
-            correct_class = self.LoadNpySample(file_name)
-        else:
-            correct_class = len(self.labels)
-            labels.append(token)
-        return token
     
 
     def Load(self, path):

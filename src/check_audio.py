@@ -1,11 +1,11 @@
 import os
+import sys
 import glob
 import librosa
 import random
 import numpy as np
 import logging
 from random import shuffle
-import scipy.io.wavfile
 
 class DataSet:
 
@@ -60,18 +60,46 @@ class DataSet:
 class WaveDataSet(DataSet):
 
     def LoadImpl(self, path):
-        sample_rate, samples = scipy.io.wavfile.read(path)
-        assert sample_rate == 8000 # @todo we only test with 8000 now
         return samples
-        
+#
+# conversion
+#
+
+def Resample(filename, target_sampling_rate):
+    y, _ = librosa.load(filename, sr=target_sampling_rate)
+    librosa.output.write_wav(filename, y, target_sample_rate)
+
+def ResampleDir(target_dir):
+    files = glob.glob(os.path.join(target_dir, ".*"))
+    for f in files:
+        logging.debug("resample %s to 8000 HZ", f)
+        Resample(f, 8000)
+
+def RootDir():
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+
+def ShowLog():
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    root.addHandler(ch)
+   
+#
+# Tests
+#
 def TestLoadSample():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = os.path.join(dir_path, "..","samples")
+    dir_path = os.path.join(RootDir(),"data/systest-prototype-small")
     wave_data_set = WaveDataSet()
     wave_data_set.Load(dir_path)
    
 def main():
+    ShowLog()
+    # only need once
+    #ResampleDir(os.path.join(RootDir(), "data/systest-prototype-small"))
     TestLoadSample()
+    
     return
 
 if __name__ == "__main__":

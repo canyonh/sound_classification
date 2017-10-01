@@ -19,18 +19,21 @@ class DataSet:
         files = glob.glob(os.path.join(path, "*"))
         shuffle(files)
         
+        correct_classes = []
         for f in files:
             logging.debug("Loading file %s", f)
-            label = self.__CalculateLabel(f)
-            x.appennd(self.LoadImpl(f))
+            correct_classes.append(self.__CalculateLabel(f))
+            self.x.append(self.LoadImpl(f))
 
-        __OneHotEncode(self.y)
-        return
+        # covert y to one hot encoding
+        for correct_class in correct_classes:
+            self.y.append(self.__OneHotEncoding(correct_class))
 
     # split the labels, put in labels, and calculate the correct class
     def __CalculateLabel(self, file_name):
-        token = os.path.basename(file_name).split('_')[0]
-        logging.debug("assign label %s for file %s", token, file_name)
+        base_name = os.path.basename(file_name)
+        token = base_name.split('_')[0]
+        logging.debug("assign label %s for file %s", token, base_name)
 
         idx = -1
         try:
@@ -39,28 +42,33 @@ class DataSet:
             pass
         
         if idx == -1:
-            self.labels.append(token)
             correct_class = len(self.labels)
-            logging.debug("assign existing label %s for file %s, class: %d", token, file_name, correct_class)
+            self.labels.append(token)
+            logging.debug("assign existing label %s for file %s, class: %d", token, base_name, correct_class)
         else:
             correct_class = idx
-            logging.debug("adding a new label %s for file %s, class: %d", token, file_name, correct_class)
-
-        self.LoadImpl(file_name)
+            logging.debug("adding a new label %s for file %s, class: %d", token, base_name, correct_class)
+        
+        return correct_class
 
     def LoadImpl(self, path):
         raise NotImplementedError()
         return None
 
-    def __OneHotEncoding(dim, val):
-        max_class = len(self.labels) + 1
-        assert max
-        return
+    def __OneHotEncoding(self, correct_class):
+        num_classes = len(self.labels)
+        one_hot = np.zeros(num_classes)
+        one_hot[correct_class] = 1
+        #print("total: ", num_classes, "class: ", correct_class, "one hot: ", one_hot)
+        return one_hot
 
 class WaveDataSet(DataSet):
 
     def LoadImpl(self, path):
-        return samples
+        y, sr= librosa.load(path, 8000)
+        logging.debug("wave file %s loaded, sample rate:%d",path, sr)
+        return y
+
 #
 # conversion
 #
@@ -71,12 +79,12 @@ def Resample(filename, target_sampling_rate):
     librosa.output.write_wav(filename, y, target_sample_rate)
 
 # generate spectrogram
-def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=320, hop_len=160, num_mels=80, flatten=True)
+def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=320, hop_len=160, num_mels=80, flatten=True):
     logging.debug("GenerateSpectrogram(), src file: %s, dst file: %s", src_filename, target_filename)
     y, _ = librosa.core.load(src_filename, sr=sampling_rate)
     spectro = librosa.feature.melspectrogram(y, sr=sampling_rate, n_fft=num_fft, hop_length=hop_len, n_mels=num_mels)
     if flatten == True:
-        np.save(target_sampling_rate, spectro.flatten()))
+        np.save(target_sampling_rate, spectro.flatten())
     else:
         np.save(target_filename, spectro)
 

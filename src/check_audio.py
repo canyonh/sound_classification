@@ -20,7 +20,7 @@ class DataSet:
         shuffle(files)
         
         for f in files:
-            logging.debug("Load file %s", f)
+            logging.debug("Loading file %s", f)
             label = self.__CalculateLabel(f)
             x.appennd(self.LoadImpl(f))
 
@@ -65,9 +65,20 @@ class WaveDataSet(DataSet):
 # conversion
 #
 
+# resample in-place
 def Resample(filename, target_sampling_rate):
     y, _ = librosa.load(filename, sr=target_sampling_rate)
     librosa.output.write_wav(filename, y, target_sample_rate)
+
+# generate spectrogram
+def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=320, hop_len=160, num_mels=80, flatten=True)
+    logging.debug("GenerateSpectrogram(), src file: %s, dst file: %s", src_filename, target_filename)
+    y, _ = librosa.core.load(src_filename, sr=sampling_rate)
+    spectro = librosa.feature.melspectrogram(y, sr=sampling_rate, n_fft=num_fft, hop_length=hop_len, n_mels=num_mels)
+    if flatten == True:
+        np.save(target_sampling_rate, spectro.flatten()))
+    else:
+        np.save(target_filename, spectro)
 
 def ResampleDir(target_dir):
     files = glob.glob(os.path.join(target_dir, ".*"))

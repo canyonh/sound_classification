@@ -2,9 +2,11 @@ import os
 import sys
 import glob
 import librosa
+import librosa.display
 import numpy as np
 import logging
 from random import shuffle
+import matplotlib.pyplot as plt
 
 
 class DataSet:
@@ -73,12 +75,6 @@ class WaveDataSet(DataSet):
 #
 
 
-# resample in-place
-def Resample(filename, target_sampling_rate):
-    y, _ = librosa.load(filename, sr=target_sampling_rate)
-    librosa.output.write_wav(filename, y, target_sampling_rate)
-
-
 # generate spectrogram
 def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=320, hop_len=160, num_mels=80, flatten=True):
     logging.debug("GenerateSpectrogram(), src file: %s, dst file: %s", src_filename, target_filename)
@@ -90,15 +86,31 @@ def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=32
         np.save(target_filename, spectro)
 
 
-def ResampleDir(target_dir):
-    files = glob.glob(os.path.join(target_dir, ".*"))
+def ConvertWav(src_dir, target_dir):
+    files = glob.glob(os.path.join(src_dir, ".*"))
     for f in files:
         logging.debug("resample %s to 8000 HZ", f)
-        Resample(f, 8000)
+        y, _ = librosa.load(f, sr=8000)
+        dst_filename = os.path.join(target_dir, os.path.splitext(os.path.basename(f))[0])
+        y.save(dst_filename)
 
 
 def RootDir():
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
+
+
+def DataDir():
+    return os.path.join(RootDir(), "data")
+
+
+def PlotSpectrum(wave_file):
+    y, _ = librosa.core.load(wave_file, sr=8000)
+    specto = librosa.feature.melspectrogram(y, sr=8000, n_fft=320, hop_length=160, n_mels=80)
+    log_specto = librosa.core.logamplitude(specto)
+    plt.figure(figsize=(12, 4))
+    plt.title(os.path.basename(wave_file))
+    librosa.display.specshow(log_specto, sr=8000, x_axis='time', y_axis='mel', hop_length=160)
+    plt.show()
 
 
 def ShowLog():
@@ -119,12 +131,19 @@ def TestLoadSample():
     wave_data_set.Load(dir_path)
 
 
+def TestPlotSpectrum():
+    dir_path = os.path.join(DataDir(), "systest-prototype-small/*.wav")
+    files = glob.glob(dir_path)
+    logging.debug("plot spectrom: %s", files[0])
+    PlotSpectrum(files[0])
+
+
 def main():
     ShowLog()
     # only need once
     # ResampleDir(os.path.join(RootDir(), "data/systest-prototype-small"))
     TestLoadSample()
-
+    TestPlotSpectrum()
     return
 
 

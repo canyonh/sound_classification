@@ -18,7 +18,9 @@ class DataSet:
         self.y = []
 
     def Load(self, path):
-        files = glob.glob(os.path.join(path, "*"))
+        load_dir = os.path.join(path, "*")
+        logging.debug("loading from directory %s", load_dir)
+        files = glob.glob(load_dir)
         shuffle(files)
 
         correct_classes = []
@@ -46,10 +48,12 @@ class DataSet:
         if idx == -1:
             correct_class = len(self.labels)
             self.labels.append(token)
-            logging.debug("assign existing label %s for file %s, class: %d", token, base_name, correct_class)
+            logging.debug("assign existing label %s for file %s, class: %d",
+                          token, base_name, correct_class)
         else:
             correct_class = idx
-            logging.debug("adding a new label %s for file %s, class: %d", token, base_name, correct_class)
+            logging.debug("adding a new label %s for file %s, class: %d",
+                          token, base_name, correct_class)
 
     def LoadImpl(self, path):
         raise NotImplementedError()
@@ -59,7 +63,8 @@ class DataSet:
         num_classes = len(self.labels)
         one_hot = np.zeros(num_classes)
         one_hot[correct_class] = 1
-        # print("total: ", num_classes, "class: ", correct_class, "one hot: ", one_hot)
+        # print("total: ", num_classes, "c: ", correct, "one hot: ", one_hot)
+
         return one_hot
 
 
@@ -70,16 +75,29 @@ class WaveDataSet(DataSet):
         logging.debug("wave file %s loaded, sample rate:%d", path, sr)
         return y
 
+
+class NpyDataSet(DataSet):
+
+    def LoadImpl(self, path):
+        y = np.load(path)
+        logging.debug("npy data file %s loaded, dimemsion %d",
+                      path, str(y.shape))
+        return y
 #
 # conversion
 #
 
 
 # generate spectrogram
-def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=320, hop_len=160, num_mels=80, flatten=True):
-    logging.debug("GenerateSpectrogram(), src file: %s, dst file: %s", src_filename, target_filename)
+def GenerateSpectrogram(src_filename, target_filename, sampling_rate,
+                        num_fft=320, hop_len=160, num_mels=80, flatten=True):
+    logging.debug("GenerateSpectrogram(), src file: %s, dst file: %s",
+                  src_filename, target_filename)
     y, _ = librosa.core.load(src_filename, sr=sampling_rate)
-    spectro = librosa.feature.melspectrogram(y, sr=sampling_rate, n_fft=num_fft, hop_length=hop_len, n_mels=num_mels)
+    spectro = librosa.feature.melspectrogram(y, sr=sampling_rate,
+                                             n_fft=num_fft,
+                                             hop_length=hop_len,
+                                             n_mels=num_mels)
     if flatten is True:
         np.save(target_filename, spectro.flatten())
     else:
@@ -87,12 +105,22 @@ def GenerateSpectrogram(src_filename, target_filename, sampling_rate, num_fft=32
 
 
 def ConvertWav(src_dir, target_dir):
-    files = glob.glob(os.path.join(src_dir, ".*"))
+    if os.path.exists(target_dir):
+        assert os.path.isdir(target_dir)
+        old_files = glob.glob(os.path.join(target_dir, "*"))
+        for f in old_files:
+            os.remove(f)
+    else:
+        os.mkdir(target_dir)
+
+    files = glob.glob(os.path.join(src_dir, "*.wav"))
     for f in files:
         logging.debug("resample %s to 8000 HZ", f)
         y, _ = librosa.load(f, sr=8000)
-        dst_filename = os.path.join(target_dir, os.path.splitext(os.path.basename(f))[0])
-        y.save(dst_filename)
+        dst_filename = os.path.join(target_dir,
+                                    os.path.splitext(os.path.basename(f))[0])
+
+        np.save(dst_filename, y)
 
 
 def RootDir():
@@ -103,13 +131,24 @@ def DataDir():
     return os.path.join(RootDir(), "data")
 
 
-def PlotSpectrum(wave_file):
+def PlotSpectrumWav(wave_file):
     y, _ = librosa.core.load(wave_file, sr=8000)
-    specto = librosa.feature.melspectrogram(y, sr=8000, n_fft=320, hop_length=160, n_mels=80)
+    PlotSpectrum(y)
+
+
+def PlotSpectrumNpy(npy_file):
+    y = np.load(npy_file)
+    PlotSpectrum(y)
+
+
+def PlotSpectrum(data, title="no titie"):
+    specto = librosa.feature.melspectrogram(data, sr=8000, n_fft=320,
+                                            hop_length=160, n_mels=80)
     log_specto = librosa.core.logamplitude(specto)
     plt.figure(figsize=(12, 4))
-    plt.title(os.path.basename(wave_file))
-    librosa.display.specshow(log_specto, sr=8000, x_axis='time', y_axis='mel', hop_length=160)
+    plt.title(title)
+    librosa.display.specshow(log_specto, sr=8000, x_axis='time', y_axis='mel',
+                             hop_length=160)
     plt.show()
 
 
@@ -117,33 +156,58 @@ def ShowLog():
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     ch = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
     ch.setFormatter(formatter)
     root.addHandler(ch)
-
-
 #
 # Tests
 #
+
+
 def TestLoadSample():
     dir_path = os.path.join(RootDir(), "data/systest-prototype-small")
     wave_data_set = WaveDataSet()
     wave_data_set.Load(dir_path)
+    PlotSpectrum(wave_data_set.x[0])
+
+    dir_path = os.path.join(RootDir(), "data/systest-prototype-small-npy")
+    print(dir_path)
+    npy_data_set = NpyDataSet()
+    npy_data_set.Load(dir_path)
+    PlotSpectrum(npy_data_set.x[0])
 
 
-def TestPlotSpectrum():
+def TestConvertWav():
+    src_path = os.path.join(DataDir(), "systest-prototype-small")
+    dst_path = os.path.join(DataDir(), "systest-prototype-small-npy")
+    ConvertWav(src_path, dst_path)
+
+
+def TestPlotSpectrumWav():
     dir_path = os.path.join(DataDir(), "systest-prototype-small/*.wav")
     files = glob.glob(dir_path)
-    logging.debug("plot spectrom: %s", files[0])
-    PlotSpectrum(files[0])
+    logging.debug("plot spectrom wav: %s", files[0])
+    PlotSpectrumWav(files[0])
+
+
+def TestPlotSpectrumNpy():
+    dir_path = os.path.join(DataDir(), "systest-prototype-small-npy/*.npy")
+    files = glob.glob(dir_path)
+    logging.debug("plot spectrom npy: %s", files[0])
+    PlotSpectrumNpy(files[0])
 
 
 def main():
     ShowLog()
     # only need once
+
     # ResampleDir(os.path.join(RootDir(), "data/systest-prototype-small"))
+    # TestConvertWav()
+    # TestPlotSpectrumWav()
+    # TestPlotSpectrumNpy()
     TestLoadSample()
-    TestPlotSpectrum()
     return
 
 

@@ -80,7 +80,7 @@ class NpyDataSet(DataSet):
 
     def LoadImpl(self, path):
         y = np.load(path)
-        logging.debug("npy data file %s loaded, dimemsion %d",
+        logging.debug("npy data file %s loaded, dimemsion %s",
                       path, str(y.shape))
         return y
 #
@@ -104,7 +104,8 @@ def GenerateSpectrogram(src_filename, target_filename, sampling_rate,
         np.save(target_filename, spectro)
 
 
-def ConvertWav(src_dir, target_dir):
+def NormalizeWav(src_dir, target_dir, save_as_wav):
+    normalize_sr = 8000
     if os.path.exists(target_dir):
         assert os.path.isdir(target_dir)
         old_files = glob.glob(os.path.join(target_dir, "*"))
@@ -115,12 +116,15 @@ def ConvertWav(src_dir, target_dir):
 
     files = glob.glob(os.path.join(src_dir, "*.wav"))
     for f in files:
-        logging.debug("resample %s to 8000 HZ", f)
-        y, _ = librosa.load(f, sr=8000)
+        logging.debug("resample %s to 8000 HZ and 3 sec", f)
+        y, _ = librosa.load(f, sr=normalize_sr, duration=3.0)
         dst_filename = os.path.join(target_dir,
                                     os.path.splitext(os.path.basename(f))[0])
 
-        np.save(dst_filename, y)
+        if save_as_wav:
+            librosa.output.write_wav(dst_filename + ".wav", y, sr=normalize_sr)
+        else:
+            np.save(dst_filename, y)
 
 
 def RootDir():
@@ -161,18 +165,19 @@ def ShowLog():
 
     ch.setFormatter(formatter)
     root.addHandler(ch)
+
 #
 # Tests
 #
 
 
 def TestLoadSample():
-    dir_path = os.path.join(RootDir(), "data/systest-prototype-small")
+    dir_path = os.path.join(DataDir(), "systest-prototype-small")
     wave_data_set = WaveDataSet()
     wave_data_set.Load(dir_path)
     PlotSpectrum(wave_data_set.x[0])
 
-    dir_path = os.path.join(RootDir(), "data/systest-prototype-small-npy")
+    dir_path = os.path.join(DataDir(), "systest-prototype-small-npy")
     print(dir_path)
     npy_data_set = NpyDataSet()
     npy_data_set.Load(dir_path)
@@ -180,9 +185,15 @@ def TestLoadSample():
 
 
 def TestConvertWav():
-    src_path = os.path.join(DataDir(), "systest-prototype-small")
+    src_path = os.path.join(RootDir(), "data-src/systest-prototype-small")
+    dst_path = os.path.join(DataDir(), "systest-prototype-small")
+    NormalizeWav(src_path, dst_path, True)
+
+
+def TestConvertNpy():
+    src_path = os.path.join(RootDir(), "data-src/systest-prototype-small")
     dst_path = os.path.join(DataDir(), "systest-prototype-small-npy")
-    ConvertWav(src_path, dst_path)
+    NormalizeWav(src_path, dst_path, False)
 
 
 def TestPlotSpectrumWav():
@@ -199,15 +210,15 @@ def TestPlotSpectrumNpy():
     PlotSpectrumNpy(files[0])
 
 
-def main():
-    ShowLog()
-    # only need once
-
-    # ResampleDir(os.path.join(RootDir(), "data/systest-prototype-small"))
-    # TestConvertWav()
-    # TestPlotSpectrumWav()
-    # TestPlotSpectrumNpy()
+def TestDataSets():
+    TestConvertWav()
+    TestConvertNpy()
     TestLoadSample()
+
+
+def main():
+    # ShowLog()
+    # only need once
     return
 
 

@@ -19,19 +19,30 @@ class DataSet:
 
     def Load(self, path):
         load_dir = os.path.join(path, "*")
-        logging.debug("loading from directory %s", load_dir)
+        logging.info("loading from directory %s", load_dir)
         files = glob.glob(load_dir)
         shuffle(files)
 
+        expected_shape = None
         correct_classes = []
         for f in files:
             logging.debug("Loading file %s", f)
             correct_classes.append(self.__CalculateLabel(f))
-            self.x.append(self.LoadImpl(f))
+            x = self.LoadImpl(f)
+            # check if shape is consistent
+            if expected_shape is None:
+                expected_shape = x.shape
+            else:
+                assert x.shape == expected_shape
+            self.x.append(x)
 
         # covert y to one hot encoding
         for correct_class in correct_classes:
             self.y.append(self.__OneHotEncoding(correct_class))
+
+        assert len(self.x) == len(self.y)
+        logging.info("%d files loaded, total classes %d",
+                     len(self.x), len(self.labels))
 
     # split the labels, put in labels, and calculate the correct class
     def __CalculateLabel(self, file_name):

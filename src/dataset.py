@@ -214,13 +214,3 @@ def TestDataSets():
     TestConvertWav()
     TestConvertNpy()
     TestLoadSample()
-
-
-def main():
-    # ShowLog()
-    # only need once
-    return
-
-
-if __name__ == "__main__":
-    main()

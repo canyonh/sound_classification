@@ -11,6 +11,20 @@ import matplotlib.pyplot as plt
 
 class DataSet:
 
+    def Split(self, train_div, val_div):
+
+        assert train_div + val_div < 1.0
+        total_sample_cnt = len(self.x)
+        assert total_sample_cnt == len(self.y)
+
+        val_start = total_sample_cnt * train_div
+        test_start = total_sample_cnt * (train_div + val_div)
+
+        train_set = {'x': self.x[0: val_start], 'y': self.y[0: val_start]}
+        val_set = {'x': self.x[val_start, test_start], 'y': self.y[val_start, test_start]}
+        test_set = {'x': self.x[test_start, total_sample_cnt], 'y': self.y[test_start, total_sample_cnt]}
+        return test_set, val_set, train_set
+
     def __init__(self):
         # index is numerical class
         self.labels = []

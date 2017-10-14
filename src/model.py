@@ -1,3 +1,4 @@
+import logging
 import tensorflow as tf
 
 
@@ -19,14 +20,30 @@ class LinearModel:
         self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(
             self.cost
         )
+        self.accuracy = 0.0
 
-    # @todo 
-    def Train(training_set, epoch_cnt, batch, batch_size=500):
+    # @todo
+    def Train(self, training_set, epoch_cnt, batch, batch_size=500):
         with tf.Session() as sess:
-            num_train = training_set
+            num_train = len(training_set.x)
             tf.global_variables_initializer().run()
 
             # training
-            for epoch_idx in range(epoch_cnt):
+            for epoch in range(epoch_cnt):
                 epoch_loss = 0
                 current = 0
+                for _ in range(int(num_train/batch_size)):
+                    c, _ = sess.run([self.cost, self.optimizer],
+                                    feed_dict={self.x: training_set.x,
+                                    self.y_correct: training_set.y})
+                epoch_loss += c
+                current += batch_size
+                logging.info("Epoch: %d, loss: %f", epoch, epoch_loss)
+            correct_prediction = tf.equal(tf.arg_max(self.y_output),
+                                          tf.argmax(self.y_correct, 1))
+            self.accuracy = tf.reduce_mean(tf.cast(correct_prediction,
+                                           tf.float32))
+            logging.info("Accuracy: %f", self.accuracy)
+
+    def Infer(self):
+        raise NotImplementedError

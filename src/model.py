@@ -19,11 +19,23 @@ class LinearModel:
     # move learning rate to train
     # in train, get parameters from training_set and set it
     # in infer we could check it
-    def __init__(self, dimension, num_classes, learning_rate):
+    def __init__(self):
+        return
+
+    # @todo
+    def Train(self, training_set, epoch_cnt,
+              learning_rate=5e-4, batch_size=500):
+        dimension = training_set.x.shape[1]
+        num_classes = training_set.y.shape[1]
+
+        assert training_set.x.shape[1] == dimension
+        assert training_set.y.shape[0] == dimension
+
         # define graph
         self.learning_rate = learning_rate
         self.dimension = dimension
         self.num_classes = num_classes
+
         self.X = tf.placeholder(tf.float32, [None, dimension])
         self.y_correct = tf.placeholder(tf.float32, [None, num_classes])
         self.W = tf.Variable(tf.random_normal([dimension, num_classes]))
@@ -36,9 +48,7 @@ class LinearModel:
             self.cost
         )
         self.accuracy = 0.0
-
-    # @todo
-    def Train(self, training_set, epoch_cnt, batch, batch_size=500):
+		# @todo session lifetime management
         with tf.Session() as sess:
             num_train = len(training_set.x)
             tf.global_variables_initializer().run()

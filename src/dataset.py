@@ -52,7 +52,7 @@ class DataSet:
                 expected_shape = x.shape
             else:
                 assert x.shape == expected_shape
-            self.x.append(x)
+            self.x.append(x) #@todo probably vstack to make it a np array?
 
         # covert y to one hot encoding
         for correct_class in correct_classes:

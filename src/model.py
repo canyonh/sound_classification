@@ -1,9 +1,24 @@
+import os
 import logging
+import dataset
+import common
 import tensorflow as tf
+
+
+def TestLinearModel():
+    test_dataset = dataset.NpyDataSet()
+    dir_path = os.path.join(common.DataDir(), "systest-prototype-small-npy")
+    print(dir_path)
+    test_dataset.Load(dir_path)
+    linear_model = LinearModel()
+    linear_model.Train(test_dataset, 10, 1)
 
 
 class LinearModel:
 
+    # move learning rate to train
+    # in train, get parameters from training_set and set it
+    # in infer we could check it
     def __init__(self, dimension, num_classes, learning_rate):
         # define graph
         self.learning_rate = learning_rate

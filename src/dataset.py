@@ -7,6 +7,7 @@ import numpy as np
 import logging
 from random import shuffle
 import matplotlib.pyplot as plt
+import common
 
 
 class DataSet:
@@ -155,14 +156,6 @@ def NormalizeWav(src_dir, target_dir, save_as_wav):
             np.save(dst_filename, y)
 
 
-def RootDir():
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), "..")
-
-
-def DataDir():
-    return os.path.join(RootDir(), "data")
-
-
 def PlotSpectrumWav(wave_file):
     y, _ = librosa.core.load(wave_file, sr=8000)
     PlotSpectrum(y)
@@ -200,12 +193,12 @@ def ShowLog():
 
 
 def TestLoadSample():
-    dir_path = os.path.join(DataDir(), "systest-prototype-small")
+    dir_path = os.path.join(common.common.DataDir(), "systest-prototype-small")
     wave_data_set = WaveDataSet()
     wave_data_set.Load(dir_path)
     PlotSpectrum(wave_data_set.x[0])
 
-    dir_path = os.path.join(DataDir(), "systest-prototype-small-npy")
+    dir_path = os.path.join(common.DataDir(), "systest-prototype-small-npy")
     print(dir_path)
     npy_data_set = NpyDataSet()
     npy_data_set.Load(dir_path)
@@ -213,26 +206,29 @@ def TestLoadSample():
 
 
 def TestConvertWav():
-    src_path = os.path.join(RootDir(), "data-src/systest-prototype-small")
-    dst_path = os.path.join(DataDir(), "systest-prototype-small")
+    rootdir = common.RootDir()
+    src_path = os.path.join(rootdir, "data-src/systest-prototype-small")
+    dst_path = os.path.join(rootdir, "systest-prototype-small")
     NormalizeWav(src_path, dst_path, True)
 
 
 def TestConvertNpy():
-    src_path = os.path.join(RootDir(), "data-src/systest-prototype-small")
-    dst_path = os.path.join(DataDir(), "systest-prototype-small-npy")
+    rootdir = common.RootDir()
+    src_path = os.path.join(rootdir, "data-src/systest-prototype-small")
+    dst_path = os.path.join(rootdir, "systest-prototype-small-npy")
     NormalizeWav(src_path, dst_path, False)
 
 
 def TestPlotSpectrumWav():
-    dir_path = os.path.join(DataDir(), "systest-prototype-small/*.wav")
+    dir_path = os.path.join(common.DataDir(), "systest-prototype-small/*.wav")
     files = glob.glob(dir_path)
     logging.debug("plot spectrom wav: %s", files[0])
     PlotSpectrumWav(files[0])
 
 
 def TestPlotSpectrumNpy():
-    dir_path = os.path.join(DataDir(), "systest-prototype-small-npy/*.npy")
+    datadir = common.DataDir()
+    dir_path = os.path.join(datadir, "systest-prototype-small-npy/*.npy")
     files = glob.glob(dir_path)
     logging.debug("plot spectrom npy: %s", files[0])
     PlotSpectrumNpy(files[0])

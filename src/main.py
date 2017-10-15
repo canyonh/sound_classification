@@ -1,11 +1,12 @@
-import dataset
+# import dataset
+import model
 
 
 def main():
     # ShowLog()
     # only need once
-    dataset.TestDataSets()
-    return
+    # dataset.TestDataSets()
+    model.TestLinearModel()
 
 
 if __name__ == "__main__":

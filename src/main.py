@@ -1,9 +1,10 @@
 # import dataset
 import model
+import common
 
 
 def main():
-    # ShowLog()
+    common.ShowLog()
     # only need once
     # dataset.TestDataSets()
     model.TestLinearModel()

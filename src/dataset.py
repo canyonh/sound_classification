@@ -1,5 +1,4 @@
 import os
-import sys
 import glob
 import librosa
 import librosa.display
@@ -32,35 +31,58 @@ class DataSet:
     def __init__(self):
         # index is numerical class
         self.labels = []
-        self.x = []
-        self.y = []
+        self.x = None
+        self.y = None
 
     def Load(self, path):
         load_dir = os.path.join(path, "*")
         logging.info("loading from directory %s", load_dir)
         files = glob.glob(load_dir)
+        if len(files) == 0:
+            logging.warn("Cannot find any data in path %s", path)
+            return
+
+        # @todo is this needed?
         shuffle(files)
+
+        x_as_list = []
+        y_as_list = []
 
         expected_shape = None
         correct_classes = []
         for f in files:
             logging.debug("Loading file %s", f)
+
+            # correct class is not one-hot encoding at this point. will be
+            # converted later
             correct_classes.append(self.__CalculateLabel(f))
             x = self.LoadImpl(f)
+
             # check if shape is consistent
             if expected_shape is None:
                 expected_shape = x.shape
             else:
+                if expected_shape != x.shape:
+                    logging.warn("incosistent loaded data.  was: %d, now: %d",
+                                 expected_shape, x.shape)
                 assert x.shape == expected_shape
-            self.x.append(x) #@todo probably vstack to make it a np array?
+
+            # numpy array occupied a continuous block of memory
+            # so it is actually faster to convert at once
+            x_as_list.append(x)
 
         # covert y to one hot encoding
         for correct_class in correct_classes:
-            self.y.append(self.__OneHotEncoding(correct_class))
+            y_as_list.append(self.__OneHotEncoding(correct_class))
 
-        assert len(self.x) == len(self.y)
+        assert len(x_as_list) == len(y_as_list)
+        assert expected_shape[0] == len(x_as_list[0])
         logging.info("%d files loaded, total classes %d",
-                     len(self.x), len(self.labels))
+                     len(x_as_list), len(y_as_list))
+
+        if len(x_as_list) > 0:
+            self.x = np.array(x_as_list)
+            self.y = np.array(y_as_list)
 
     # split the labels, put in labels, and calculate the correct class
     def __CalculateLabel(self, file_name):
@@ -176,16 +198,6 @@ def PlotSpectrum(data, title="no titie"):
                              hop_length=160)
     plt.show()
 
-
-def ShowLog():
-    root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    ch.setFormatter(formatter)
-    root.addHandler(ch)
 
 #
 # Tests

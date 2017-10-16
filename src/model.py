@@ -20,16 +20,18 @@ class LinearModel:
     # in train, get parameters from training_set and set it
     # in infer we could check it
     def __init__(self):
+        self.session = None
         return
 
     # @todo
     def Train(self, training_set, epoch_cnt,
               learning_rate=5e-4, batch_size=500):
+        logging.info("x shape = ", training_set.x.shape,
+                     "y shape = ", training_set.y.shape)
+        num_samples = training_set.x.shape[0]
+        assert num_samples == training_set.y.shape[0]
         dimension = training_set.x.shape[1]
         num_classes = training_set.y.shape[1]
-
-        assert training_set.x.shape[1] == dimension
-        assert training_set.y.shape[0] == dimension
 
         # define graph
         self.learning_rate = learning_rate
@@ -47,8 +49,13 @@ class LinearModel:
         self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(
             self.cost
         )
+
         self.accuracy = 0.0
-		# @todo session lifetime management
+        if self.session is not None:
+            self.session.close()
+
+        self.session = tf.Session()
+        # @todo session lifetime management
         with tf.Session() as sess:
             num_train = len(training_set.x)
             tf.global_variables_initializer().run()

@@ -26,8 +26,9 @@ class LinearModel:
     # @todo
     def Train(self, training_set, epoch_cnt,
               learning_rate=5e-4, batch_size=500):
-        logging.info("x shape = ", training_set.x.shape,
-                     "y shape = ", training_set.y.shape)
+        logging.info("x shape = %s, y shape = %s",
+                     str(training_set.x.shape),
+                     str(training_set.y.shape))
         num_samples = training_set.x.shape[0]
         assert num_samples == training_set.y.shape[0]
         dimension = training_set.x.shape[1]
@@ -41,10 +42,10 @@ class LinearModel:
         self.X = tf.placeholder(tf.float32, [None, dimension])
         self.y_correct = tf.placeholder(tf.float32, [None, num_classes])
         self.W = tf.Variable(tf.random_normal([dimension, num_classes]))
-        self.b = tf.variable(tf.random_normal([num_classes]))
+        self.b = tf.Variable(tf.random_normal([num_classes]))
         self.y_output = tf.matmul(self.X, self.W) + self.b
         self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            labels=self.y_, logits=self.y_output)
+            labels=self.y_correct, logits=self.y_output)
         )
         self.optimizer = tf.train.AdamOptimizer(learning_rate).minimize(
             self.cost
@@ -68,14 +69,14 @@ class LinearModel:
                     c, _ = sess.run([self.cost, self.optimizer],
                                     feed_dict={self.x: training_set.x,
                                     self.y_correct: training_set.y})
-                epoch_loss += c
+                    epoch_loss += c
                 current += batch_size
                 logging.info("Epoch: %d, loss: %f", epoch, epoch_loss)
-            correct_prediction = tf.equal(tf.arg_max(self.y_output),
+            correct_prediction = tf.equal(tf.argmax(self.y_output, 1),
                                           tf.argmax(self.y_correct, 1))
             self.accuracy = tf.reduce_mean(tf.cast(correct_prediction,
                                            tf.float32))
-            logging.info("Accuracy: %f", self.accuracy)
+            logging.info("Accuracy: %s", str(self.accuracy))
 
     def Infer(self):
         raise NotImplementedError

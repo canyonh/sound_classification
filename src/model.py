@@ -25,7 +25,7 @@ class LinearModel:
 
     # @todo
     def Train(self, training_set, epoch_cnt,
-              learning_rate=5e-4, batch_size=500):
+              batch_size=500, learning_rate=5e-4):
         logging.info("x shape = %s, y shape = %s",
                      str(training_set.x.shape),
                      str(training_set.y.shape))
@@ -33,17 +33,19 @@ class LinearModel:
         assert num_samples == training_set.y.shape[0]
         dimension = training_set.x.shape[1]
         num_classes = training_set.y.shape[1]
+        logging.info("Train: sample_cnt: %d, dim: %d, classes: %d",
+                     num_samples, dimension, num_classes)
 
         # define graph
         self.learning_rate = learning_rate
         self.dimension = dimension
         self.num_classes = num_classes
 
-        self.X = tf.placeholder(tf.float32, [None, dimension])
+        self.x = tf.placeholder(tf.float32, [None, dimension])
         self.y_correct = tf.placeholder(tf.float32, [None, num_classes])
         self.W = tf.Variable(tf.random_normal([dimension, num_classes]))
         self.b = tf.Variable(tf.random_normal([num_classes]))
-        self.y_output = tf.matmul(self.X, self.W) + self.b
+        self.y_output = tf.matmul(self.x, self.W) + self.b
         self.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
             labels=self.y_correct, logits=self.y_output)
         )

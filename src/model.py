@@ -12,7 +12,7 @@ def TestLinearModel():
     test_dataset.Load(dir_path)
     with LinearModel() as linear_model:
         linear_model.Train(test_dataset, 1000, 1)
-        infer_result = linear_model.Infer(test_dataset.x)
+        infer_result = linear_model.Infer(test_dataset.x[0])
         for result in infer_result:
             logging.info("infer result: %s", str(result))
 

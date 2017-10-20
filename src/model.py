@@ -3,6 +3,7 @@ import logging
 import dataset
 import common
 import tensorflow as tf
+import numpy as np
 
 
 def TestLinearModel():
@@ -11,10 +12,11 @@ def TestLinearModel():
     print(dir_path)
     test_dataset.Load(dir_path)
     with LinearModel() as linear_model:
-        linear_model.Train(test_dataset, 1000, 1)
-        infer_result = linear_model.Infer(test_dataset.x[0])
-        for result in infer_result:
-            logging.info("infer result: %s", str(result))
+        linear_model.Train(test_dataset, 10, 1)
+        first_row = test_dataset.x[0]
+        first_row = first_row.reshape(1, first_row.shape[0])
+        infer_result = linear_model.Infer(first_row)
+        logging.info("infer result: %d", infer_result)
 
 
 class LinearModel:
@@ -91,4 +93,8 @@ class LinearModel:
 
     def Infer(self, x):
         result = self.session.run([self.y_output], feed_dict={self.x: x})
-        return tf.argmax(result, 1)
+        scores = np.reshape(result[0], result[0].shape[1])
+        logging.debug("scores: %s", str(scores))
+        correct_class = np.argmax(scores)
+        logging.debug("inferred class: %d", correct_class)
+        return correct_class

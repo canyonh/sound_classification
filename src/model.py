@@ -93,12 +93,14 @@ class SimpleLinearModel(SimpleModel):
         self.graph.W = tf.Variable(tf.random_normal([dimension, num_classes]))
         self.graph.b = tf.Variable(tf.random_normal([num_classes]))
         self.graph.y_output = tf.matmul(self.tf_x, self.tf_W) + self.tf_b
-        self.graph.cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
-            labels=self.graph.y_correct, logits=self.graph.y_output)
-        )
-        self.graph.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(
-            self.graph.cost
-        )
+        self.graph.cost = \
+            tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+                           labels=self.graph.y_correct,
+                           logits=self.graph.y_output))
+        self.graph.optimizer = \
+            tf.train.AdamOptimizer(self.learning_rate) \
+            .minimize(self.graph.cost)
+
         self.tf_correct_prediction = tf.equal(tf.argmax(self.tf_y_output, 1),
                                               tf.argmax(self.tf_y_correct, 1))
         self.tf_accuracy = tf.reduce_mean(tf.cast(self.tf_correct_prediction,

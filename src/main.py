@@ -1,13 +1,13 @@
 # import dataset
-import model
 import common
+import test
 
 
 def main():
     common.ShowLog()
     # only need once
     # dataset.TestDataSets()
-    model.TestLinearModel()
+    test.TestLinearModel()
 
 
 if __name__ == "__main__":

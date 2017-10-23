@@ -7,7 +7,10 @@ def main():
     common.ShowLog()
     # only need once
     # dataset.TestDataSets()
-    test.TestLinearModel()
+    # test.TestLinearModel()
+    # test.TestLinearModelMnist()
+    test.TestLinearMnistModel()
+    # test.TestNNModelMnist()
 
 
 if __name__ == "__main__":

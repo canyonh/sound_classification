@@ -34,6 +34,11 @@ class DataSet:
         self.x = None
         self.y = None
 
+    def Set(self, samples, classes):
+        self.lables = []
+        self.x = samples
+        self.y = classes
+
     def Load(self, path):
         load_dir = os.path.join(path, "*")
         logging.info("loading from directory %s", load_dir)

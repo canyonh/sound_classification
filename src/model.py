@@ -67,10 +67,10 @@ class SimpleModel:
                      self.params.num_classes)
 
         # define data (self.graph.x) and correct label (self.graph.y_correct)
-        self.graph.x = tf.placeholder(tf.float32,
-                                      [None, self.params.dimension])
-        self.graph.y_correct = tf.placeholder(tf.float32,
-                                              [None, self.params.num_classes])
+        self.graph.x = \
+            tf.placeholder(tf.float32, [None, self.params.dimension])
+        self.graph.y_correct = \
+            tf.placeholder(tf.float32, [None, self.params.num_classes])
 
         # define the rest of the model using thru DefineModelImpl
         self.DefineModelImpl()
@@ -144,7 +144,9 @@ class SimpleLinearModel(SimpleModel):
         self.graph.W = \
             tf.Variable(tf.random_normal([self.params.dimension,
                                           self.params.num_classes]))
-        self.graph.b = tf.Variable(tf.random_normal([self.params.num_classes]))
+        self.graph.b = \
+            tf.Variable(tf.random_normal([self.params.num_classes]))
+
         self.graph.y_output = \
             tf.matmul(self.graph.x, self.graph.W) + self.graph.b
 
@@ -152,6 +154,7 @@ class SimpleLinearModel(SimpleModel):
             tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
                            labels=self.graph.y_correct,
                            logits=self.graph.y_output))
+
         self.graph.optimizer = \
             tf.train.AdamOptimizer(self.params.learning_rate) \
             .minimize(self.graph.cost)
@@ -159,6 +162,7 @@ class SimpleLinearModel(SimpleModel):
         self.graph.correct_prediction = \
             tf.equal(tf.argmax(self.graph.y_output, 1),
                      tf.argmax(self.graph.y_correct, 1))
+
         self.graph.accuracy = \
             tf.reduce_mean(tf.cast(self.graph.correct_prediction,
                                    tf.float32))
@@ -174,10 +178,14 @@ class SimpleNeuralNetwork(SimpleModel):
     def DefineModelImpl(self):
         logging.info("DefineModel() dim: %d, classes: %d",
                      self.params.dimension, self.params.num_classes)
+
         self.graph.W = \
             tf.Variable(tf.random_normal([self.params.dimension,
                                           self.params.num_classes]))
-        self.graph.b = tf.Variable(tf.random_normal([self.params.num_classes]))
+
+        self.graph.b = \
+            tf.Variable(tf.random_normal([self.params.num_classes]))
+
         self.graph.y_output = \
             tf.matmul(self.graph.x, self.graph.W) + self.graph.b
 
@@ -185,6 +193,7 @@ class SimpleNeuralNetwork(SimpleModel):
             tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
                            labels=self.graph.y_correct,
                            logits=self.graph.y_output))
+
         self.graph.optimizer = \
             tf.train.AdamOptimizer(self.params.learning_rate) \
             .minimize(self.graph.cost)
@@ -261,7 +270,8 @@ class LinearModel:
                 c, _ = self.session.run([self.tf_cost, self.tf_optimizer],
                                         feed)
                 epoch_loss += c
-            current += batch_size
+                current += batch_size
+
             logging.info("Epoch: %d, loss: %f", epoch, epoch_loss)
 
         # check accuracy

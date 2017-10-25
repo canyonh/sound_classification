@@ -50,3 +50,19 @@ def TestNNModelMnist():
         infer_result = linear_model.Infer(first_row)
         logging.info("infer result: %d", infer_result)
         '''
+
+
+def TestSaveModel():
+    mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+    training_set, training_label = mnist.train.next_batch(60000)
+    mnist_dataset = dataset.DataSet()
+    mnist_dataset.Set(training_set, training_label)
+
+    with model.SimpleNeuralNetwork(2, 500) as mdl:
+        mdl.Train(mnist_dataset, 100)
+        mdl.SaveModel("/tmp/nn.ckpt")
+
+
+def TestLoadModel():
+    with model.SimpleNeuralNetwork(2, 500) as mdl:
+        mdl.LoadModel("/tmp/nn.ckpt")

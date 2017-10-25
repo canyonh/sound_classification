@@ -42,9 +42,6 @@ class SimpleModel:
             raise TypeError
         raise NotImplementedError
 
-    def Test(self):
-        return
-
     def Train(self, training_set, epoch_cnt,
               batch_size=500, learning_rate=5e-4):
 
@@ -133,19 +130,35 @@ class SimpleModel:
         logging.debug("inferred class: %d", correct_class)
         return correct_class
 
-    def SaveModel(self, model_file):
+    def SaveModel(self, save_path):
         if self.session is None:
             raise TypeError
-        raise NotImplementedError
+        saver = tf.train.Saver()
+        saved = saver.save(self.session, save_path)
+        logging.info("Mode saved in file: %s" % saved)
+
+    def LoadModel(self, saved_path):
+        tf.reset_default_graph()
+        self.graph.W = tf.get_variable("W", shape=[784, 10])
+        self.graph.b = tf.get_variable("b", shape=[10])
+        saver = tf.train.Saver()
+
+        if self.session is not None:
+            raise TypeError
+
+        self.session = tf.Session()
+        saver.restore(self.session, saved_path)
+        logging.info("Model restored: %s", saved_path)
 
 
 class SimpleLinearModel(SimpleModel):
     def DefineModelImpl(self):
         self.graph.W = \
-            tf.Variable(tf.random_normal([self.params.dimension,
-                                          self.params.num_classes]))
+            tf.Variable("W", tf.random_normal([self.params.dimension,
+                        self.params.num_classes]))
+
         self.graph.b = \
-            tf.Variable(tf.random_normal([self.params.num_classes]))
+            tf.Variable("b", tf.random_normal([self.params.num_classes]))
 
         self.graph.y_output = \
             tf.matmul(self.graph.x, self.graph.W) + self.graph.b

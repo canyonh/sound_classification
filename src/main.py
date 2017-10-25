@@ -8,8 +8,10 @@ def main():
     # only need once
     # dataset.TestDataSets()
     # test.TestLinearModel()
-    test.TestLinearMnistModel()
-    test.TestNNModelMnist()
+    # test.TestLinearMnistModel()
+    # test.TestNNModelMnist()
+    test.TestSaveModel()
+    test.TestLoadModel()
 
 if __name__ == "__main__":
     main()

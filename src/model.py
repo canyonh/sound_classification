@@ -72,12 +72,24 @@ class SimpleModel:
         # define the rest of the model using thru DefineModelImpl
         self.DefineModelImpl()
 
+        # check accuracy
+        self.graph.correct_prediction = \
+            tf.equal(tf.argmax(self.graph.y_output, 1),
+                     tf.argmax(self.graph.y_correct, 1))
+
+        self.graph.accuracy = \
+            tf.reduce_mean(tf.cast(self.graph.correct_prediction,
+                                   tf.float32))
+
         # open a new session
         if self.session is not None:
             self.session.close()
 
         self.session = tf.Session()
+
         self.session.run(tf.global_variables_initializer())
+
+        self.saver = tf.train.Saver()
 
         # perform the training
         self.TrainImpl(training_set, epoch_cnt, batch_size)
@@ -101,21 +113,13 @@ class SimpleModel:
                 current += batch_size
             logging.info("Epoch: %d, loss: %f", epoch, epoch_loss)
 
-        # check accuracy
-        self.graph.correct_prediction = \
-            tf.equal(tf.argmax(self.graph.y_output, 1),
-                     tf.argmax(self.graph.y_correct, 1))
-
-        self.graph.accuracy = \
-            tf.reduce_mean(tf.cast(self.graph.correct_prediction,
-                                   tf.float32))
-
         self.accuracy = \
             self.session.run(self.graph.accuracy,
                              feed_dict={self.graph.x:
                                         training_set.x,
                                         self.graph.y_correct:
                                         training_set.y})
+
         logging.info("accuracy: %f", self.accuracy)
 
     def Infer(self, x):
@@ -133,21 +137,17 @@ class SimpleModel:
     def SaveModel(self, save_path):
         if self.session is None:
             raise TypeError
-        saver = tf.train.Saver()
-        saved = saver.save(self.session, save_path)
+        saved = self.saver.save(self.session, save_path, global_step=1000)
         logging.info("Mode saved in file: %s" % saved)
 
     def LoadModel(self, saved_path):
-        tf.reset_default_graph()
-        self.graph.W = tf.get_variable("W", shape=[784, 10])
-        self.graph.b = tf.get_variable("b", shape=[10])
-        saver = tf.train.Saver()
-
         if self.session is not None:
             raise TypeError
 
         self.session = tf.Session()
-        saver.restore(self.session, saved_path)
+        saver = tf.train.import_meta_graph('/tmp/nn-1000.meta')
+        saver.restore(self.session, tf.train.latest_checkpoint('/tmp'))
+
         logging.info("Model restored: %s", saved_path)
 
 

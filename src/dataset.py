@@ -183,6 +183,24 @@ def NormalizeWav(src_dir, target_dir, save_as_wav):
             np.save(dst_filename, y)
 
 
+def ConvertToSpectrum(src_dir, target_dir):
+    normalize_sr = 8000
+    if os.path.exists(target_dir):
+        assert os.path.isdir(target_dir)
+        old_files = glob.glob(os.path.join(target_dir, "*"))
+        for f in old_files:
+            os.remove(f)
+    else:
+        os.mkdir(target_dir)
+
+    files = glob.glob(os.path.join(src_dir, "*.wav"))
+    for f in files:
+        dst_filename = os.path.join(target_dir,
+                                    os.path.splitext(os.path.basename(f))[0])
+        logging.debug("converting %s to %s", f, dst_filename)
+        GenerateSpectrogram(f, dst_filename, normalize_sr, 320, 160, 80, False)
+
+
 def PlotSpectrumWav(wave_file):
     y, _ = librosa.core.load(wave_file, sr=8000)
     PlotSpectrum(y)
@@ -193,7 +211,7 @@ def PlotSpectrumNpy(npy_file):
     PlotSpectrum(y)
 
 
-def PlotSpectrum(data, title="no titie"):
+def PlotSpectrum(data, title="no titie", flatten=True):
     specto = librosa.feature.melspectrogram(data, sr=8000, n_fft=320,
                                             hop_length=160, n_mels=80)
     log_specto = librosa.core.logamplitude(specto)

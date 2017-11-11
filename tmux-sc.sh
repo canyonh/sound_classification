@@ -2,7 +2,7 @@
 
 SESSION_NAME="sc"
 
-cd ~/Documents/code/github/sound_classification
+cd ~/Documents/code/github/sound_classification/src
 
 tmux has-session -t ${SESSION_NAME}
 
@@ -15,10 +15,10 @@ then
     tmux split-window -v -p 20
     #tmux split-window -h
 
-    tmux new-window -n 'jupyter' -t ${SESSION_NAME}
-    tmux send-keys -t ${SESSION_NAME}:1 'jupyter notebook' C-m
+    #tmux new-window -n 'jupyter' -t ${SESSION_NAME}
+    #tmux send-keys -t ${SESSION_NAME}:1 'jupyter notebook' C-m
 
-    tmux select-window -t ${SESSION_NAME}:0
+    #tmux select-window -t ${SESSION_NAME}:0
 fi
 
 tmux attach -t ${SESSION_NAME}

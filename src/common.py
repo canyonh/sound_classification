@@ -19,3 +19,7 @@ def RootDir():
 
 def DataDir():
     return os.path.join(RootDir(), "data")
+
+
+def SrcDir():
+    return os.path.join(RootDir(), "data-src")

@@ -4,42 +4,58 @@ import numpy as np
 import tensorflow as tf
 import common
 import librosa
+import librosa.display
 import matplotlib.pyplot as plt
 import logging
+import time
 
 #
 # Sample preparation
 #
 
+sampling_rate = 8000
+num_fft = 320
+hop_len = 160
+num_mels = 160
+duration = 3.0
 
-def PlotSpectrum(data, title="no titie"):
-    specto = librosa.feature.melspectrogram(data, sr=8000, n_fft=320,
-                                            hop_length=160, n_mels=80)
-    log_specto = librosa.core.logamplitude(specto)
-    plt.figure(figsize=(12, 4))
+
+def PlotSpectrum(spectro, title="no titie"):
+    log_specto = librosa.core.logamplitude(spectro)
+    plt.figure(figsize=(6, 6))
     plt.title(title)
-    librosa.display.specshow(log_specto, sr=8000, x_axis='time', y_axis='mel',
-                             hop_length=160)
+    librosa.display.specshow(log_specto,
+                             sr=sampling_rate,
+                             x_axis='time', y_axis='mel',
+                             hop_length=hop_len)
     plt.show()
 
 
 def ConvertSample(src_filename, target_filename, plot_spectrum=False):
-    sampling_rate = 8000
-    num_fft = 320
-    hop_len = 160
-    num_mels = 80
-    y, _ = librosa.core.load(src_filename, sr=sampling_rate)
+    y, _ = librosa.core.load(src_filename, sr=sampling_rate, duration=duration)
+    logging.debug(y.shape)
     spectro = librosa.feature.melspectrogram(y, sr=sampling_rate,
                                              n_fft=num_fft,
                                              hop_length=hop_len,
                                              n_mels=num_mels)
+    logging.debug(spectro.shape)
     if plot_spectrum:
         PlotSpectrum(spectro, title=target_filename)
 
     np.save(target_filename, spectro)
 
+    # load test
+    # spectro_loaded = np.load(target_filename + '.npy')
+    # PlotSpectrum(spectro_loaded)
+
+
+def LoadSpectro(filename, plot_spectrum=True):
+    y = np.load(filename)
+    PlotSpectrum(y)
+
 
 def PrepareInput(src_dir, target_dir):
+    start = time.time()
     # cleanup current target dir
     if os.path.exists(target_dir):
         assert os.path.isdir(target_dir)
@@ -48,18 +64,28 @@ def PrepareInput(src_dir, target_dir):
             os.remove(f)
     else:
         os.mkdir(target_dir)
-    return
 
     # load files and convert to melspectrum
     files = glob.glob(os.path.join(src_dir, "*.wav"))
 
-    first_file = True
+    show_first_spectrogram = False
+    sample_converted = 0
     for f in files:
         dst_filename = os.path.join(target_dir,
                                     os.path.splitext(os.path.basename(f))[0])
-        logging.info("Converting sample %s, to %s", f, dst_filename)
-        ConvertSample(f, dst_filename, first_file)
-        first_file = False
+
+        logging.debug("Converting sample %s, to %s", f, dst_filename)
+        ConvertSample(f, dst_filename, show_first_spectrogram)
+        show_first_spectrogram = False
+
+        sample_converted += 1
+        if sample_converted % 100 == 0:
+            logging.info("time elapsed: %d, sample converted: %d",
+                         time.time() - start, sample_converted)
+
+    logging.info("Prepare input lasts: %d seconds for %d samples",
+                 time.time() - start,
+                 len(files))
 #
 # neural network
 #
@@ -101,16 +127,21 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
         tf.summary.histogram('activations', activations)
         return activations
 
+#
+# Main
+#
+
 
 def main():
-    common.ShowLog()
-    src_dir = os.path.join(common.common.SrcDir(), "system-sample-2017-11-08")
-    input_dir = os.path.join(common.common.DataDir(),
-                             "system-sample-2017-11-08-normalized-wav")
+    common.LogLevel(logging.INFO)
+    src_dir = os.path.join(common.SrcDir(), "system-sample-2017-11-08")
+    input_dir = os.path.join(common.DataDir(), "system-sample-mel-spectrogram")
 
     if not os.path.exists(input_dir):
         PrepareInput(src_dir, input_dir)
-
+    else:
+        logging.info("Skipping preparing input dir %s since it already exists",
+                     input_dir)
 
 if __name__ == "__main__":
     main()

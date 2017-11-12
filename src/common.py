@@ -3,9 +3,9 @@ import logging
 import sys
 
 
-def ShowLog():
+def LogLevel(level):
     root = logging.getLogger()
-    root.setLevel(logging.DEBUG)
+    root.setLevel(level)
     ch = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s')

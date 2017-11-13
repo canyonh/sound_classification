@@ -8,6 +8,7 @@ import librosa.display
 import matplotlib.pyplot as plt
 import logging
 import time
+from tensorflow.examples.tutorials.mnist import input_data
 
 #
 # Sample preparation
@@ -132,7 +133,54 @@ def nn_layer(input_tensor, input_dim, output_dim, layer_name, act=tf.nn.relu):
 #
 
 
-def main():
+def MnistNNTrain():
+    common.LogLevel(logging.INFO)
+    # parameters
+    hidden_layer_size = 500
+    batch_size = 500
+    training_rate = 5e-4
+    epoch = 2000
+
+    mnist = input_data.read_data_sets("MNIST_data", one_hot=True)
+    batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+    logging.debug("x shape = %s, y shape = %s", batch_xs.shape, batch_ys.shape)
+
+    dim = batch_xs.shape[1]
+    num_classes = batch_ys.shape[1]
+    assert batch_xs.shape[0] == batch_size
+    assert batch_ys.shape[0] == batch_size
+
+    x = tf.placeholder(tf.float32, [None, dim])
+    y_ = tf.placeholder(tf.float32, [None, num_classes])
+
+    nn_layer1 = \
+        nn_layer(x, dim, hidden_layer_size, "nn_layer1")
+
+    nn_layer2 = \
+        nn_layer(nn_layer1, hidden_layer_size, num_classes, "nn_layer2")
+
+    cross_entropy = \
+        tf.reduce_mean(
+            tf.nn.softmax_cross_entropy_with_logits(
+                labels=y_,
+                logits=nn_layer2))
+
+    train = tf.train.AdamOptimizer(training_rate).minimize(cross_entropy)
+    correct_prediction = tf.equal(tf.arg_max(nn_layer2, 1), tf.argmax(y_, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+    with tf.Session() as sess:
+        sess.run(tf.global_variables_initializer())
+        for i in range(epoch):
+            logging.debug("epoch: %d", i)
+            _, train_accuracy = \
+                sess.run([train, accuracy],
+                         feed_dict={x: batch_xs, y_: batch_ys})
+            batch_xs, batch_ys = mnist.train.next_batch(batch_size)
+            logging.info("accuracy: %f", train_accuracy)
+
+
+def SystemTestNNTrain():
     common.LogLevel(logging.INFO)
     src_dir = os.path.join(common.SrcDir(), "system-sample-2017-11-08")
     input_dir = os.path.join(common.DataDir(), "system-sample-mel-spectrogram")
@@ -142,6 +190,11 @@ def main():
     else:
         logging.info("Skipping preparing input dir %s since it already exists",
                      input_dir)
+
+
+def main():
+    # SystemTestNNTrain()
+    MnistNNTrain()
 
 if __name__ == "__main__":
     main()

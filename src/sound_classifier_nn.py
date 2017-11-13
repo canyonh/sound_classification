@@ -150,14 +150,17 @@ def MnistNNTrain():
     assert batch_xs.shape[0] == batch_size
     assert batch_ys.shape[0] == batch_size
 
-    x = tf.placeholder(tf.float32, [None, dim])
-    y_ = tf.placeholder(tf.float32, [None, num_classes])
+    with tf.name_scope("input"):
+        x = tf.placeholder(tf.float32, [None, dim])
+        y_ = tf.placeholder(tf.float32, [None, num_classes])
 
     nn_layer1 = \
         nn_layer(x, dim, hidden_layer_size, "nn_layer1")
 
     nn_layer2 = \
-        nn_layer(nn_layer1, hidden_layer_size, num_classes, "nn_layer2")
+        nn_layer(nn_layer1,
+                 hidden_layer_size,
+                 num_classes, "nn_layer2", act=tf.identity)
 
     cross_entropy = \
         tf.reduce_mean(

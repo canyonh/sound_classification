@@ -23,3 +23,7 @@ def DataDir():
 
 def SrcDir():
     return os.path.join(RootDir(), "data-src")
+
+
+def LogDir():
+    return os.path.join(RootDir(), "log")

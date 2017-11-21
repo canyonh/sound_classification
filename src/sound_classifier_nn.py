@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import logging
 import time
 from tensorflow.examples.tutorials.mnist import input_data
+import systestdataset
 
 #
 # Sample preparation
@@ -50,7 +51,7 @@ def ConvertSample(src_filename, target_filename, plot_spectrum=False):
     # PlotSpectrum(spectro_loaded)
 
 
-def LoadSpectro(filename, plot_spectrum=True):
+def LoadSpectrom(filename, plot_spectrum=True):
     y = np.load(filename)
     PlotSpectrum(y)
 
@@ -227,14 +228,21 @@ def MnistNNTrain():
 
 def SystemTestNNTrain():
     common.LogLevel(logging.INFO)
-    src_dir = os.path.join(common.SrcDir(), "system-sample-2017-11-08")
-    input_dir = os.path.join(common.DataDir(), "system-sample-mel-spectrogram")
+    # src_dir = os.path.join(common.SrcDir(), "system-sample-2017-11-08-wav")
+    # input_dir = os.path.join(common.DataDir(),"system-sample-2017-11-08-npy")
 
-    if not os.path.exists(input_dir):
-        PrepareInput(src_dir, input_dir)
+    wav_dir = os.path.join(common.DataDir(), "systest-prototype-small")
+    npy_dir = os.path.join(common.DataDir(), "systest-prototype-small-npy")
+    if not os.path.exists(npy_dir):
+        PrepareInput(wav_dir, npy_dir)
     else:
-        logging.info("Skipping preparing input dir %s since it already exists",
-                     input_dir)
+        logging.info("Skipping preparing npy dir %s since it already exists",
+                     npy_dir)
+
+    systest_dataset = systestdataset.DataSet()
+    systest_dataset.Load(wav_dir, npy_dir)
+
+    systest_dataset.Split(0.8, 0.1)
 
 
 def main():

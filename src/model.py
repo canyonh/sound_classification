@@ -7,28 +7,28 @@ import numpy as np
 # Simple Models - Linear and NN
 #
 class ModelParams:
-    def __init__(self):
-        self.accuracy = 0.0
-        self.learning_rate = 0.0
-        self.num_classes = 0
-        self.dimension = 0
-
+    learning_rate = 0.0
+    num_classes = 0
+    dimension = 0
 
 class ModelGraphs:
-    def __init__(self):
-        self.x = None
-        self.y_correct = None
-        self.optimizer = None
-        self.y_output = None
-
+    x = None
+    y_correct = None
+    optimizer = None
+    y_output = None
+    correct_prediction = None
+    accuracy_node = None
+    W = None
+    b = None
+    y_output = None
+    cost = None
 
 class SimpleModel:
-
-    def __init__(self):
-        self.session = None
-        self.params = ModelParams()
-        self.graph = ModelGraphs()
-        return
+    saver = None
+    training_accuracy = None
+    session = None
+    params = ModelParams()
+    graph = ModelGraphs()
 
     def __enter__(self):
         return self
@@ -77,7 +77,7 @@ class SimpleModel:
             tf.equal(tf.argmax(self.graph.y_output, 1),
                      tf.argmax(self.graph.y_correct, 1))
 
-        self.graph.accuracy = \
+        self.graph.accuracy_node = \
             tf.reduce_mean(tf.cast(self.graph.correct_prediction,
                                    tf.float32))
 
@@ -113,14 +113,14 @@ class SimpleModel:
                 current += batch_size
             logging.info("Epoch: %d, loss: %f", epoch, epoch_loss)
 
-        self.accuracy = \
-            self.session.run(self.graph.accuracy,
+        self.training_accuracy = \
+            self.session.run(self.graph.accuracy_node,
                              feed_dict={self.graph.x:
                                         training_set.x,
                                         self.graph.y_correct:
                                         training_set.y})
 
-        logging.info("accuracy: %f", self.accuracy)
+        logging.info("accuracy: %f", self.training_accuracy)
 
     def Infer(self, x):
         if self.session is None:
@@ -176,14 +176,13 @@ class SimpleLinearModel(SimpleModel):
             tf.equal(tf.argmax(self.graph.y_output, 1),
                      tf.argmax(self.graph.y_correct, 1))
 
-        self.graph.accuracy = \
+        self.graph.accuracy_node = \
             tf.reduce_mean(tf.cast(self.graph.correct_prediction,
                                    tf.float32))
 
 
 class SimpleNeuralNetwork(SimpleModel):
     def __init__(self, num_layers, neurons_per_layer):
-        SimpleModel.__init__(self)
         self.params.num_layers = num_layers
         self.params.neurons_per_layer = neurons_per_layer
         return
@@ -214,24 +213,31 @@ class SimpleNeuralNetwork(SimpleModel):
         self.graph.correct_prediction = \
             tf.equal(tf.argmax(self.graph.y_output, 1),
                      tf.argmax(self.graph.y_correct, 1))
-        self.graph.accuracy = \
+        self.graph.accuracy_node = \
             tf.reduce_mean(tf.cast(self.graph.correct_prediction,
                                    tf.float32))
 
 
 # @todo re-implemented using simple model. delete if no longer needed
 class LinearModel:
+    session = None
+    learning_rate = None
+    dimension = None
+    num_classes = None
+    training_accuracy = 0.0
+    tf_x = None
+    tf_y_correct = None
+    tf_W = None
+    tf_b = None
+    tf_y_output = None
+    tf_cost = None
+    tf_optimizer = None
+    tf_correct_prediction = None
+    tf_accuracy = None
 
     # move learning rate to train
     # in train, get parameters from training_set and set it
     # in infer we could check it
-    def __init__(self):
-        self.session = None
-        return
-
-    def __enter__(self):
-        return self
-
     def __exit__(self, exec_type, exec_value, traceback):
         if self.session is not None:
             self.session.close()
@@ -293,12 +299,12 @@ class LinearModel:
         self.tf_accuracy = tf.reduce_mean(tf.cast(self.tf_correct_prediction,
                                           tf.float32))
 
-        self.accuracy = self.session.run(self.tf_accuracy,
+        self.training_accuracy = self.session.run(self.tf_accuracy,
                                          feed_dict={self.tf_x:
                                                     training_set.x,
                                                     self.tf_y_correct:
                                                     training_set.y})
-        logging.info("accuracy: %f", self.accuracy)
+        logging.info("accuracy: %f", self.training_accuracy)
 
     def Infer(self, x):
         result = self.session.run([self.tf_y_output], feed_dict={self.tf_x: x})

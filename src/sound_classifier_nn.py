@@ -53,7 +53,8 @@ def ConvertSample(src_filename, target_filename, plot_spectrum=False):
 
 def LoadSpectrom(filename, plot_spectrum=True):
     y = np.load(filename)
-    PlotSpectrum(y)
+    if plot_spectrum:
+        PlotSpectrum(y)
 
 
 def PrepareInput(src_dir, target_dir):
@@ -182,7 +183,7 @@ def MnistNNTrain():
     with tf.name_scope('accuracy'):
         with tf.name_scope('correct_prediction'):
             correct_prediction = \
-                tf.equal(tf.arg_max(y, 1), tf.argmax(y_, 1))
+                tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
         with tf.name_scope('accuracy'):
             accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
     tf.summary.scalar('accuracy', accuracy)
@@ -202,7 +203,7 @@ def MnistNNTrain():
             logging.info("epoch: %d", i)
             if i % 10 == 0:  # testing
                 xs, ys = mnist.test.images, mnist.test.labels
-                summary, acc = sess.run([merged, accuracy],
+                summary, _= sess.run([merged, accuracy],
                                         feed_dict={x: xs, y_: ys})
                 test_writer.add_summary(summary, i)
             else:

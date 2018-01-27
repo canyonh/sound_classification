@@ -12,7 +12,7 @@ import common
 class DataSet:
     x = None
     y = None
-    Labels = []
+    labels = []
 
     def Split(self, train_div, val_div):
 

@@ -10,6 +10,9 @@ import common
 
 
 class DataSet:
+    x = None
+    y = None
+    Labels = []
 
     def Split(self, train_div, val_div):
 
@@ -27,12 +30,6 @@ class DataSet:
         test_set = {'x': self.x[test_start, total_sample_cnt],
                     'y': self.y[test_start, total_sample_cnt]}
         return test_set, val_set, train_set
-
-    def __init__(self):
-        # index is numerical class
-        self.labels = []
-        self.x = None
-        self.y = None
 
     def Set(self, samples, classes):
         self.lables = []
@@ -228,7 +225,7 @@ def PlotSpectrum(data, title="no titie", flatten=True):
 
 
 def TestLoadSample():
-    dir_path = os.path.join(common.common.DataDir(), "systest-prototype-small")
+    dir_path = os.path.join(common.DataDir(), "systest-prototype-small")
     wave_data_set = WaveDataSet()
     wave_data_set.Load(dir_path)
     PlotSpectrum(wave_data_set.x[0])

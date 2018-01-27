@@ -11,6 +11,7 @@ class ModelParams:
     num_classes = 0
     dimension = 0
 
+
 class ModelGraphs:
     x = None
     y_correct = None
@@ -22,6 +23,7 @@ class ModelGraphs:
     b = None
     y_output = None
     cost = None
+
 
 class SimpleModel:
     saver = None
@@ -299,7 +301,8 @@ class LinearModel:
         self.tf_accuracy = tf.reduce_mean(tf.cast(self.tf_correct_prediction,
                                           tf.float32))
 
-        self.training_accuracy = self.session.run(self.tf_accuracy,
+        self.training_accuracy = self.session.run(
+                                         self.tf_accuracy,
                                          feed_dict={self.tf_x:
                                                     training_set.x,
                                                     self.tf_y_correct:

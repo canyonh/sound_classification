@@ -1,7 +1,8 @@
 # import dataset
 import logging
 import common
-import test
+# import test
+import dataset
 
 
 def main():
@@ -11,8 +12,9 @@ def main():
     # test.TestLinearModel()
     # test.TestLinearMnistModel()
     # test.TestNNModelMnist()
-    test.TestSaveModel()
-    test.TestLoadModel()
+    # test.TestSaveModel()
+    # test.TestLoadModel()
+    dataset.TestLoadSample()
 
 if __name__ == "__main__":
     main()

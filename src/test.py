@@ -59,7 +59,7 @@ def TestSaveModel():
     mnist_dataset.Set(training_set, training_label)
 
     with model.SimpleNeuralNetwork(2, 500) as mdl:
-        mdl.Train(mnist_dataset, 10)
+        mdl.Train(mnist_dataset, 100)
         mdl.SaveModel("/tmp/nn")
 
 

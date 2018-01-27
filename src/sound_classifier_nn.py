@@ -203,8 +203,9 @@ def MnistNNTrain():
             logging.info("epoch: %d", i)
             if i % 10 == 0:  # testing
                 xs, ys = mnist.test.images, mnist.test.labels
-                summary, _= sess.run([merged, accuracy],
-                                        feed_dict={x: xs, y_: ys})
+                summary, _ = sess.run(
+                                      [merged, accuracy],
+                                      feed_dict={x: xs, y_: ys})
                 test_writer.add_summary(summary, i)
             else:
                 if i % 100 == 99:
